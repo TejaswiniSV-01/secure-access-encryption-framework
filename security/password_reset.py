@@ -1,3 +1,4 @@
+
 import secrets
 import sqlite3
 import time
@@ -163,22 +164,93 @@ def request_password_reset(username):
 
     return True, generic_message
 
+
 def reset_password(username, otp, new_password):
-    """Reset a user's password after valid OTP verification."""
+    """Reset a password atomically after valid OTP verification."""
+
+    if not isinstance(username, str) or not username:
+        return False, "Invalid or expired verification code."
 
     if not isinstance(new_password, str) or len(new_password) < 12:
         return False, "Password must contain at least 12 characters."
 
-    if not verify_reset_otp(username, otp):
-        return False, "Invalid or expired verification code."
-
-    new_password_hash = hash_password(new_password)
+    create_database()
 
     with closing(sqlite3.connect(DATABASE_PATH)) as connection:
-        with connection:
+        connection.execute("BEGIN IMMEDIATE")
+
+        try:
+            record = connection.execute("""
+                SELECT otp_hash, expires_at, attempts
+                FROM password_reset_tokens
+                WHERE username = ?
+            """, (username,)).fetchone()
+
+            if record is None:
+                connection.rollback()
+                return False, "Invalid or expired verification code."
+
+            stored_hash, expires_at, attempts = record
+
+            if time.time() >= expires_at or attempts >= MAX_OTP_ATTEMPTS:
+                connection.execute(
+                    "DELETE FROM password_reset_tokens WHERE username = ?",
+                    (username,),
+                )
+                connection.commit()
+                return False, "Invalid or expired verification code."
+
+            if not verify_otp(otp, stored_hash):
+                new_attempts = attempts + 1
+
+                if new_attempts >= MAX_OTP_ATTEMPTS:
+                    connection.execute(
+                        "DELETE FROM password_reset_tokens WHERE username = ?",
+                        (username,),
+                    )
+                else:
+                    connection.execute("""
+                        UPDATE password_reset_tokens
+                        SET attempts = ?
+                        WHERE username = ?
+                    """, (new_attempts, username))
+
+                connection.commit()
+                return False, "Invalid or expired verification code."
+
+            # Hash the password before consuming the OTP.
+            new_password_hash = hash_password(new_password)
+
             connection.execute(
-                "UPDATE users SET password_hash = ? WHERE username = ?",
+                """
+                UPDATE users
+                SET password_hash = ?
+                WHERE username = ?
+                """,
                 (new_password_hash, username),
             )
 
-    return True, "Password reset successful."
+            # Make sure exactly one user account was updated.
+            updated_rows = connection.execute(
+                "SELECT changes()"
+            ).fetchone()[0]
+
+            if updated_rows != 1:
+                raise RuntimeError(
+                    "Password reset failed because the user account "
+                    "could not be updated."
+                )
+
+            # Consume the OTP only after a successful password update.
+            connection.execute(
+                "DELETE FROM password_reset_tokens WHERE username = ?",
+                (username,),
+            )
+
+            connection.commit()
+
+            return True, "Password reset successful."
+
+        except Exception:
+            connection.rollback()
+            raise

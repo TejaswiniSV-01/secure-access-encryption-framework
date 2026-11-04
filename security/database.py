@@ -1,4 +1,5 @@
 import sqlite3
+import time
 from contextlib import closing
 from pathlib import Path
 
@@ -56,9 +57,34 @@ def create_database():
                 CREATE TABLE IF NOT EXISTS login_attempts (
                     username TEXT PRIMARY KEY,
                     failed_attempts INTEGER NOT NULL DEFAULT 0,
-                    locked_until REAL NOT NULL DEFAULT 0
+                    locked_until REAL NOT NULL DEFAULT 0,
+                    updated_at REAL NOT NULL DEFAULT 0
                 )
             """)
+
+            # Migrate existing login-attempt tables.
+            login_columns = {
+                row[1]
+                for row in connection.execute(
+                    "PRAGMA table_info(login_attempts)"
+                ).fetchall()
+            }
+
+            if "updated_at" not in login_columns:
+                connection.execute("""
+                    ALTER TABLE login_attempts
+                    ADD COLUMN updated_at REAL NOT NULL DEFAULT 0
+                """)
+
+            # Give existing records a migration timestamp.
+            connection.execute(
+                """
+                UPDATE login_attempts
+                SET updated_at = ?
+                WHERE updated_at = 0
+                """,
+                (time.time(),),
+            )
 
             # Store password-reset OTP hashes and expiry information.
             connection.execute("""
@@ -84,5 +110,6 @@ def add_user(username, password_hash, email=None):
                     (username, password_hash, email),
                 )
         return True
+
     except sqlite3.IntegrityError:
         return False

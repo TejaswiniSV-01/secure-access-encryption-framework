@@ -172,6 +172,54 @@ class TestPasswordReset(unittest.TestCase):
         self.assertTrue(result[0])
         self.assertIn("If the account exists", result[1])
 
+    def test_otp_is_not_consumed_if_password_hashing_fails(self):
+        otp = generate_otp()
+        self.assertTrue(save_reset_otp(self.username, otp))
+
+        with patch(
+            "security.password_reset.hash_password",
+            side_effect=RuntimeError("Simulated hashing failure"),
+        ):
+            with self.assertRaises(RuntimeError):
+                reset_password(
+                    self.username,
+                    otp,
+                    "NewSecurePassword456!",
+                )
+
+        # The OTP should still be available after the failure.
+        self.assertTrue(verify_reset_otp(self.username, otp))
+
+    def test_otp_is_not_consumed_if_password_update_fails(self):
+        otp = generate_otp()
+        self.assertTrue(save_reset_otp(self.username, otp))
+
+        # Create a trigger that deliberately blocks password updates.
+        with closing(sqlite3.connect(self.database_path)) as connection:
+            connection.execute("""
+                CREATE TRIGGER fail_password_update
+                BEFORE UPDATE OF password_hash ON users
+                BEGIN
+                    SELECT RAISE(ABORT, 'Simulated password update failure');
+                END;
+            """)
+            connection.commit()
+
+        # The password update should fail.
+        with self.assertRaises(sqlite3.IntegrityError):
+            reset_password(
+                self.username,
+                otp,
+                "NewSecurePassword456!",
+            )
+
+        # Remove the trigger so we can verify the OTP.
+        with closing(sqlite3.connect(self.database_path)) as connection:
+            connection.execute("DROP TRIGGER fail_password_update")
+            connection.commit()
+
+        # The OTP should still be valid after the failed update.
+        self.assertTrue(verify_reset_otp(self.username, otp))
 
 if __name__ == "__main__":
     unittest.main()
