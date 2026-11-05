@@ -1,3 +1,4 @@
+
 # Security Assessment
 ## Secure Access & Encryption Framework
 
@@ -21,6 +22,7 @@ The project includes:
 - Password reset using email OTP verification.
 - AES-256-GCM file encryption and decryption.
 - A Flask-based web interface.
+- Local HTTPS/TLS configuration.
 - Automated unit and web application tests.
 
 ## 2. Security Features Implemented
@@ -82,8 +84,10 @@ The project includes a Flask web interface with:
 - Signed Flask sessions.
 - HTTP-only session cookies.
 - `SameSite=Lax` session cookie configuration.
+- Secure session cookies enabled.
 - Debug mode disabled.
 - Local development server restricted to `127.0.0.1`.
+- HTTPS/TLS using a locally generated self-signed certificate.
 
 The session stores the authenticated username, not the user's password or MFA secret.
 
@@ -103,6 +107,7 @@ The session stores the authenticated username, not the user's password or MFA se
 - Email credentials are stored in a private configuration directory.
 - Sensitive configuration files use restrictive permissions.
 - Private keys and credentials are excluded from version control.
+- The local TLS private key is stored in the ignored `instance/` directory and protected with restrictive file permissions.
 
 ### 3.3 Session and Cookie Configuration
 
@@ -112,11 +117,24 @@ The Flask application currently uses:
 |---|---|
 | HTTPOnly | Enabled |
 | SameSite | Lax |
-| Secure | Disabled for local HTTP testing |
+| Secure | Enabled |
 | Debug mode | Disabled |
 | Server binding | 127.0.0.1 |
+| HTTPS/TLS | Enabled for local development |
 
-**Important limitation:** The application currently runs over local HTTP. HTTPS/TLS has not yet been configured. The Secure cookie setting must be enabled when HTTPS is deployed.
+The session cookie Secure, HTTPOnly, and SameSite settings have been verified.
+
+### 3.4 HTTPS/TLS Configuration
+
+- A self-signed TLS certificate was generated using OpenSSL.
+- The certificate uses a 2048-bit RSA key.
+- The certificate includes `localhost` and `127.0.0.1` as subject alternative names.
+- The certificate is valid for local development.
+- The private key is protected using file permissions (`600`).
+- Flask uses the certificate and private key through its `ssl_context` setting.
+- HTTPS login was manually tested successfully.
+
+**Important limitation:** The certificate is self-signed and is not automatically trusted by browsers. It is intended for local development only and is not suitable for production deployment.
 
 ## 4. Automated Testing Results
 
@@ -182,6 +200,9 @@ The following web application behaviours were manually verified:
 | MFA enrollment succeeds | PASS |
 | Login without MFA code is rejected for an MFA-enabled account | PASS |
 | Login with valid MFA code succeeds | PASS |
+| HTTPS homepage loads | PASS |
+| HTTPS login succeeds | PASS |
+| Secure session cookie configuration verified | PASS |
 
 ## 5. Static Security Analysis
 
@@ -195,7 +216,7 @@ Latest result:
 
 | Metric | Result |
 |---|---:|
-| Lines of code scanned | 1,202 |
+| Lines of code scanned | 1,206 |
 | High severity findings | 0 |
 | Medium severity findings | 0 |
 | Low severity findings | 0 |
@@ -223,8 +244,7 @@ The project is still under development. The following improvements remain:
 
 | Area | Planned improvement | Priority |
 |---|---|---|
-| HTTPS/TLS | Configure HTTPS for web communications | High |
-| Session security | Enable Secure cookies after HTTPS deployment | High |
+| Production HTTPS/TLS | Replace the local self-signed certificate with a trusted production certificate | High |
 | Web deployment | Use a production WSGI server | High |
 | Web password reset | Add password reset to the web interface | Medium |
 | Web file encryption | Add file encryption and decryption to the web interface | Medium |
@@ -236,8 +256,8 @@ The project is still under development. The following improvements remain:
 ### 6.1 Current Deployment Limitations
 
 - The Flask development server is intended for local development, not production deployment.
-- HTTPS/TLS is not yet configured.
-- The session cookie Secure flag is disabled for local HTTP testing.
+- The current self-signed certificate is not trusted by browsers by default.
+- Production HTTPS/TLS deployment still requires a trusted certificate and appropriate server configuration.
 - Web-based password reset and file encryption are not yet implemented.
 - Additional production security testing is required.
 
@@ -247,6 +267,8 @@ The project currently implements several important security controls, including 
 
 The Flask interface provides browser-based registration, authentication, dashboard access, logout, and MFA enrollment.
 
+Local HTTPS/TLS has been configured and tested. Secure session cookies are enabled.
+
 The latest verification results are:
 
 | Security check | Result |
@@ -254,9 +276,11 @@ The latest verification results are:
 | Automated tests | 105 passed |
 | Flask web tests | 17 passed |
 | Bandit | 0 issues identified |
-| Bandit lines scanned | 1,202 |
+| Bandit lines scanned | 1,206 |
 | pip-audit | No known vulnerabilities |
 | Manual MFA verification | Passed |
+| Local HTTPS verification | Passed |
+| Secure session cookie | Enabled |
 
 These results demonstrate that the tested functionality is working as expected. They do not constitute a complete security audit or establish production readiness.
 
@@ -266,4 +290,6 @@ The Secure Access & Encryption Framework has progressed from a command-line secu
 
 Core authentication, encryption, MFA, and password-reset functionality has been implemented and tested.
 
-Future development will focus on HTTPS/TLS, production deployment, additional web features, improved session management, and further security testing.
+Local HTTPS/TLS and Secure session cookies have now been configured and verified.
+
+Future development will focus on production deployment, additional web features, improved session management, and further security testing.

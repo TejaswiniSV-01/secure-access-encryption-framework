@@ -37,7 +37,7 @@ csrf = CSRFProtect(app)
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=True,
 )
 
 
@@ -174,4 +174,8 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=5000,
         debug=False,
+        ssl_context=(
+            "instance/tls/localhost-cert.pem",
+            "instance/tls/localhost-key.pem",
+        ),
     )
