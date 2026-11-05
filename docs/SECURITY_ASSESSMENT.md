@@ -1,3 +1,4 @@
+
 # Secure Access & Encryption Framework
 ## Security Assessment Report
 
@@ -79,7 +80,7 @@ bandit -r . -x ./.venv,./tests
 
 | Scan Detail | Result |
 |---|---:|
-| Lines of Code Scanned | 982 |
+| Lines of Code Scanned | 1,072 |
 | High Severity Findings | 0 |
 | Medium Severity Findings | 0 |
 | Low Severity Findings | 0 |
@@ -118,8 +119,11 @@ The following security behaviours were manually checked during development.
 | OTP Expiration | Expired OTP is rejected | PASS |
 | OTP Reuse | Previously used OTP is rejected | PASS |
 | OTP Storage | OTP is stored as a hash | PASS |
-| File Integrity | Modified encrypted files are rejected | PASS |
+| File Encryption | Sample file is encrypted successfully | PASS |
+| File Decryption | Correct password decrypts the file | PASS |
+| File Integrity | Decrypted file matches original content | PASS |
 | Incorrect File Password | Incorrect password cannot decrypt the file | PASS |
+| Failed Decryption | No output file is created after failed decryption | PASS |
 | Database Permissions | Database file has restricted permissions | PASS |
 
 ---
@@ -157,6 +161,8 @@ The following security behaviours were manually checked during development.
 - AES-256-GCM provides authenticated file encryption.
 - Scrypt is used for password-based key derivation.
 - Authentication protects encrypted file contents against undetected modification.
+- Incorrect passwords are rejected during decryption.
+- Existing output files are not overwritten.
 
 ### Database Security
 
@@ -220,6 +226,7 @@ The Secure Access & Encryption Framework implements several important security c
 |---|---|
 | Python Unit Tests | 88 Passed |
 | Bandit Application Code Scan | 0 Findings |
+| Bandit Lines Scanned | 1,072 |
 | pip-audit | No Known Vulnerabilities |
 | Manual Security Checks | Passed |
 

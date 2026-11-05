@@ -90,7 +90,7 @@ class TestApplicationSession(unittest.TestCase):
 
         with patch(
             "builtins.input",
-            side_effect=["5", "3"]
+            side_effect=["7", "5"]
         ), redirect_stdout(StringIO()):
             app.main()
 
