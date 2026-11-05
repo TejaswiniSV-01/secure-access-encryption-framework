@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | Secure Access Framework</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Secure Access & Encryption Framework</h1>
+        <p>Your account dashboard</p>
+    </header>
+
+    <main>
+        <h2>Welcome, {{ username }}!</h2>
+
+        <p>You are successfully logged in.</p>
+
+        <p>
+            Your account is protected by the authentication
+            system of this project.
+        </p>
+
+        <p>
+            <a href="{{ url_for('mfa_setup') }}">
+                Set Up Multi-Factor Authentication
+            </a>
+        </p>
+
+        <form method="POST" action="{{ url_for('logout') }}">
+            <input type="hidden" name="csrf_token"
+                   value="{{ csrf_token() }}">
+
+            <button type="submit">Logout</button>
+        </form>
+    </main>
+
+    <footer>
+        <p>Secure Access Framework | Learning Project</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MFA Setup | Secure Access Framework</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Secure Access & Encryption Framework</h1>
+        <p>Multi-Factor Authentication Setup</p>
+    </header>
+
+    <main>
+        <h2>Set Up MFA</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        {% if setup_uri %}
+
+            <h3>Step 1: Add your authenticator account</h3>
+
+            <p>
+                Open Microsoft Authenticator or another
+                compatible authenticator application.
+            </p>
+
+            <p>
+                Select the option to add an account using
+                a setup key or manual entry.
+            </p>
+
+            <p>
+                Your setup URI is shown below.
+                Keep it private.
+            </p>
+
+            <p>
+                <code>{{ setup_uri }}</code>
+            </p>
+
+            <h3>Step 2: Confirm MFA enrollment</h3>
+
+            <form method="POST"
+                  action="{{ url_for('mfa_confirm') }}">
+
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <p>
+                    <label for="password">Account password</label><br>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           required
+                           autocomplete="current-password">
+                </p>
+
+                <p>
+                    <label for="mfa_code">
+                        Six-digit authenticator code
+                    </label><br>
+
+                    <input type="text"
+                           id="mfa_code"
+                           name="mfa_code"
+                           required
+                           inputmode="numeric"
+                           maxlength="6"
+                           pattern="[0-9]{6}"
+                           autocomplete="one-time-code">
+                </p>
+
+                <button type="submit">
+                    Confirm and Enable MFA
+                </button>
+            </form>
+
+        {% else %}
+
+            <p>
+                Enter your account password to begin
+                multi-factor authentication setup.
+            </p>
+
+            <form method="POST"
+                  action="{{ url_for('mfa_setup') }}">
+
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <p>
+                    <label for="password">Account password</label><br>
+
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           required
+                           autocomplete="current-password">
+                </p>
+
+                <button type="submit">
+                    Begin MFA Setup
+                </button>
+            </form>
+
+        {% endif %}
+
+        <p>
+            <a href="{{ url_for('dashboard') }}">
+                Return to Dashboard
+            </a>
+        </p>
+    </main>
+
+    <footer>
+        <p>Secure Access Framework | Learning Project</p>
+    </footer>
+</body>
+</html>

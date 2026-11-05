@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Secure Access Framework</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Secure Access & Encryption Framework</h1>
+        <p>A security-focused authentication and data protection system.</p>
+    </header>
+
+    <main>
+        <h2>Welcome</h2>
+
+        <p>
+            This project demonstrates secure authentication,
+            multi-factor authentication, and file encryption.
+        </p>
+
+        <p>
+            <a href="{{ url_for('register') }}">Create an account</a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('login') }}">Login to your account</a>
+        </p>
+    </main>
+
+    <footer>
+        <p>Secure Access Framework | Learning Project</p>
+    </footer>
+</body>
+</html>

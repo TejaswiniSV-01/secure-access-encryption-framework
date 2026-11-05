@@ -30,3 +30,9 @@ users.db
 
 # Email credentials
 email.env
+
+# Flask local instance data
+instance/
+
+# Python test caches
+.mypy_cache/

@@ -1,249 +1,269 @@
+# Security Assessment
+## Secure Access & Encryption Framework
 
-# Secure Access & Encryption Framework
-## Security Assessment Report
-
-![Security Tests](https://img.shields.io/badge/Security_Tests-PASS-brightgreen)
-![Unit Tests](https://img.shields.io/badge/Unit_Tests-88%20Passed-brightgreen)
-![Bandit](https://img.shields.io/badge/Bandit-0%20Findings-brightgreen)
-![Dependency Audit](https://img.shields.io/badge/pip--audit-No_Known_Vulnerabilities-brightgreen)
+**Assessment date:** 5 November 2026
+**Project status:** Development and security testing
+**Application:** Python CLI and Flask web interface
 
 ---
 
-## 1. Assessment Overview
+## 1. Project Overview
 
-| Detail | Information |
-|---|---|
-| Project | Secure Access & Encryption Framework |
-| Assessment Date | 5 November 2026 |
-| Platform | Kali Linux |
-| Programming Language | Python |
-| Database | SQLite |
-| Assessment Type | Application Security Assessment |
-| Testing Approach | Automated and Manual Testing |
+The Secure Access & Encryption Framework is a learning project designed to demonstrate secure authentication, multi-factor authentication (MFA), password protection, and file encryption.
 
-### Objective
+The project includes:
 
-The objective of this assessment is to evaluate the security features implemented in the Secure Access & Encryption Framework.
-
-The assessment focuses on authentication, password protection, multi-factor authentication, password recovery, file encryption, database security, and dependency vulnerabilities.
-
----
+- User registration and authentication.
+- Secure password hashing using Argon2.
+- Time-based one-time password (TOTP) multi-factor authentication.
+- Encrypted storage of MFA secrets.
+- Login rate limiting.
+- Password reset using email OTP verification.
+- AES-256-GCM file encryption and decryption.
+- A Flask-based web interface.
+- Automated unit and web application tests.
 
 ## 2. Security Features Implemented
 
-| Security Feature | Implementation | Status |
-|---|---|---|
-| Username Validation | Input validation rules | PASS |
-| Password Hashing | Argon2 | PASS |
-| User Authentication | Password verification | PASS |
-| Multi-Factor Authentication | TOTP | PASS |
-| MFA Secret Protection | Fernet encryption | PASS |
-| Login Rate Limiting | 5 failed attempts, 5-minute lockout | PASS |
-| Password Reset | OTP-based password recovery | PASS |
-| OTP Protection | Argon2 hashing, expiry and attempt limits | PASS |
-| Email Delivery | Gmail SMTP over SSL | PASS |
-| File Encryption | AES-256-GCM | PASS |
-| Key Derivation | Scrypt | PASS |
-| Database Protection | SQLite permissions and migrations | PASS |
-
----
-
-## 3. Security Testing Results
-
-### 3.1 Automated Unit Testing
-
-The Python unit test suite was executed using:
-
-```bash
-python -m unittest discover -v
-```
-
-**Result: 88 tests passed.**
-
-| Test Result | Count |
-|---|---:|
-| Tests Executed | 88 |
-| Tests Passed | 88 |
-| Tests Failed | 0 |
-
-The tests cover application functionality and security-related behaviour, including authentication, MFA, password handling, password recovery, database operations, and file encryption.
-
-### 3.2 Static Application Security Testing
-
-The Bandit security scanner was executed using:
-
-```bash
-bandit -r . -x ./.venv,./tests
-```
-
-**Result: No issues identified.**
-
-| Scan Detail | Result |
-|---|---:|
-| Lines of Code Scanned | 1,072 |
-| High Severity Findings | 0 |
-| Medium Severity Findings | 0 |
-| Low Severity Findings | 0 |
-| Undefined Severity Findings | 0 |
-
-**Scope note:** The virtual environment and test directory were excluded from this scan. The result applies to the scanned application code, not every file in the repository.
-
-### 3.3 Dependency Vulnerability Assessment
-
-The dependency audit was performed using:
-
-```bash
-pip-audit
-```
-
-**Result: No known vulnerabilities found.**
-
-The audit did not identify known vulnerabilities in the installed Python dependencies.
-
----
-
-## 4. Manual Security Verification
-
-The following security behaviours were manually checked during development.
-
-| Security Check | Expected Behaviour | Result |
-|---|---|---|
-| User Registration | Valid registration succeeds | PASS |
-| User Login | Correct credentials allow login | PASS |
-| MFA Enrollment | Password verification is required | PASS |
-| MFA Confirmation | Valid TOTP code enables MFA | PASS |
-| MFA Login | Valid authenticator code is accepted | PASS |
-| Invalid MFA Code | Invalid code does not enable MFA | PASS |
-| Login Rate Limiting | Repeated failed attempts trigger lockout | PASS |
-| Password Reset OTP | OTP is verified before password reset | PASS |
-| OTP Expiration | Expired OTP is rejected | PASS |
-| OTP Reuse | Previously used OTP is rejected | PASS |
-| OTP Storage | OTP is stored as a hash | PASS |
-| File Encryption | Sample file is encrypted successfully | PASS |
-| File Decryption | Correct password decrypts the file | PASS |
-| File Integrity | Decrypted file matches original content | PASS |
-| Incorrect File Password | Incorrect password cannot decrypt the file | PASS |
-| Failed Decryption | No output file is created after failed decryption | PASS |
-| Database Permissions | Database file has restricted permissions | PASS |
-
----
-
-## 5. Security Controls and Design
-
-### Password Security
+### 2.1 Password Security
 
 - Passwords are hashed using Argon2.
-- Password verification is performed during authentication.
-- Plain-text passwords are not stored in the user database.
+- Plaintext passwords are not stored in the database.
+- Password verification uses the Argon2 verification process.
+- Registration requires a minimum password length of 12 characters.
+- Password reset updates the stored password hash.
 
-### Multi-Factor Authentication
+### 2.2 Authentication
 
-- TOTP is used as the second authentication factor.
-- MFA secrets are encrypted using Fernet before database storage.
-- Password verification is required to begin and confirm MFA enrollment.
-
-### Authentication Protection
-
+- User authentication verifies the username and password.
+- Generic authentication error messages help reduce username enumeration.
 - Login attempts are rate-limited.
-- Five failed attempts trigger a five-minute lockout.
-- Authentication responses are designed to avoid unnecessarily revealing account information.
+- Five failed login attempts trigger a five-minute lockout.
+- Successful authentication resets failed-attempt tracking.
 
-### Password Recovery
+### 2.3 Multi-Factor Authentication
 
-- Password-reset OTPs are generated using a cryptographically secure random generator.
-- OTPs are stored as Argon2 hashes.
+- TOTP-based MFA is implemented using PyOTP.
+- MFA secrets are encrypted using Fernet before database storage.
+- MFA enrollment requires the user's account password.
+- MFA is enabled only after successful verification of an authenticator code.
+- Login requires a valid MFA code when MFA is enabled.
+- Invalid and missing MFA codes are rejected.
+
+### 2.4 Password Reset
+
+- Password reset uses a six-digit OTP.
+- OTP values are generated using a cryptographically secure random generator.
+- OTP values are stored as Argon2 hashes.
 - OTPs expire after five minutes.
-- A maximum of five verification attempts is allowed.
+- A maximum of five incorrect attempts is permitted.
 - Successfully used OTPs cannot be reused.
+- Generic responses help prevent account enumeration.
 
-### File Encryption
+### 2.5 File Encryption
 
-- AES-256-GCM provides authenticated file encryption.
+- Files are encrypted using AES-256-GCM.
 - Scrypt is used for password-based key derivation.
 - Authentication protects encrypted file contents against undetected modification.
-- Incorrect passwords are rejected during decryption.
+- Incorrect passwords are rejected.
+- Tampered encrypted files are rejected.
 - Existing output files are not overwritten.
+- Failed decryption does not create an output file.
 
-### Database Security
+### 2.6 Web Application Security
 
-- SQLite is used for data storage.
-- Database migrations support schema updates.
-- Database connections are cleaned up.
-- Database file permissions are restricted.
+The project includes a Flask web interface with:
 
----
+- User registration and login.
+- Authenticated dashboard access.
+- Web-based MFA enrollment and confirmation.
+- Logout functionality.
+- CSRF protection using Flask-WTF.
+- Signed Flask sessions.
+- HTTP-only session cookies.
+- `SameSite=Lax` session cookie configuration.
+- Debug mode disabled.
+- Local development server restricted to `127.0.0.1`.
 
-## 6. Security Configuration
+The session stores the authenticated username, not the user's password or MFA secret.
 
-Sensitive configuration values are stored outside the project repository.
+## 3. Security Configuration
 
-Examples include:
+### 3.1 Database Protection
 
-- MFA encryption key.
-- Email account credentials.
-- Email application password.
+- The SQLite database file is configured with restrictive file permissions.
+- Database operations use parameterized SQL queries.
+- Database connections are closed using context managers and cleanup mechanisms.
+- Database schema migrations preserve existing data.
 
-File permissions are restricted to reduce unauthorized access.
+### 3.2 Secret Management
 
-**Important:** Secret keys and credentials must never be committed to GitHub or included in source code.
+- MFA encryption keys are stored outside the project directory.
+- Flask session signing keys are stored outside the project directory.
+- Email credentials are stored in a private configuration directory.
+- Sensitive configuration files use restrictive permissions.
+- Private keys and credentials are excluded from version control.
 
----
+### 3.3 Session and Cookie Configuration
 
-## 7. Limitations and Areas for Improvement
+The Flask application currently uses:
 
-| Area | Recommendation | Priority |
-|---|---|---|
-| Session Management | Implement secure session handling | High |
-| HTTPS/TLS | Add HTTPS when developing the web application | High |
-| File Encryption | Support large files without loading the entire file into memory | Medium |
-| Key Management | Introduce secure key rotation and backup procedures | High |
-| Logging | Add security event logging without exposing secrets | Medium |
-| Deployment | Perform additional security testing in a production-like environment | High |
-| Recovery | Define a secure MFA recovery process | Medium |
-
-The current command-line application uses an in-process login state. This should not be treated as production-grade session management.
-
----
-
-## 8. Overall Assessment
-
-**TESTS PASSED**
-
-The Secure Access & Encryption Framework implements several important security controls, including:
-
-- Argon2 password hashing.
-- TOTP multi-factor authentication.
-- Fernet encryption for stored MFA secrets.
-- Login rate limiting.
-- Secure OTP-based password recovery.
-- AES-256-GCM file encryption.
-- Scrypt-based key derivation.
-- Restricted database and configuration file permissions.
-
-### Latest Validation Results
-
-| Assessment | Result |
+| Setting | Configuration |
 |---|---|
-| Python Unit Tests | 88 Passed |
-| Bandit Application Code Scan | 0 Findings |
-| Bandit Lines Scanned | 1,072 |
-| pip-audit | No Known Vulnerabilities |
-| Manual Security Checks | Passed |
+| HTTPOnly | Enabled |
+| SameSite | Lax |
+| Secure | Disabled for local HTTP testing |
+| Debug mode | Disabled |
+| Server binding | 127.0.0.1 |
 
-Passing automated and manual tests does not guarantee that an application is completely secure. Further testing, code review, and security improvements are necessary before production deployment.
+**Important limitation:** The application currently runs over local HTTP. HTTPS/TLS has not yet been configured. The Secure cookie setting must be enabled when HTTPS is deployed.
 
----
+## 4. Automated Testing Results
 
-## 9. Conclusion
+The complete automated test suite was executed using:
 
-This project demonstrates the implementation of fundamental application security concepts using Python.
+`python -m unittest discover -v`
 
-It provides practical experience with authentication, password hashing, multi-factor authentication, encryption, database security, vulnerability scanning, and software testing.
+**Result: 105 tests passed.**
 
-The project will continue to evolve with additional security improvements, web application development, HTTPS/TLS configuration, and further testing.
+| Test category | Tests |
+|---|---:|
+| CLI application and validation | 13 |
+| Authentication | 12 |
+| Database | 4 |
+| File encryption | 6 |
+| MFA | 6 |
+| MFA enrollment | 6 |
+| Password reset | 14 |
+| Password security | 6 |
+| Rate limiter | 13 |
+| Secret storage | 4 |
+| Flask web application | 17 |
+| **Total** | **105** |
 
----
+All tests passed with zero failures and zero errors.
 
-*Report prepared for the Secure Access & Encryption Framework project.*
+### 4.1 Flask Web Application Tests
 
-*Assessment Date: 5 November 2026*
+The 17 web tests cover:
+
+- Homepage loading.
+- Registration page loading.
+- Successful registration.
+- Password mismatch handling.
+- Login page loading.
+- Successful login.
+- Failed login.
+- Dashboard access protection.
+- Authenticated dashboard access.
+- Logout and session clearing.
+- CSRF protection.
+- MFA setup access protection.
+- MFA confirmation access protection.
+- Successful MFA setup.
+- Successful MFA confirmation.
+- Failed MFA confirmation.
+
+MFA route tests use mocked enrollment and confirmation functions. They verify route behaviour without changing real account MFA settings.
+
+### 4.2 Manual Web Testing
+
+The following web application behaviours were manually verified:
+
+| Test | Result |
+|---|---|
+| Homepage opens | PASS |
+| Registration works | PASS |
+| Password mismatch is rejected | PASS |
+| Login works | PASS |
+| Dashboard displays authenticated username | PASS |
+| Logout clears access | PASS |
+| Dashboard requires authentication | PASS |
+| MFA enrollment succeeds | PASS |
+| Login without MFA code is rejected for an MFA-enabled account | PASS |
+| Login with valid MFA code succeeds | PASS |
+
+## 5. Static Security Analysis
+
+### 5.1 Bandit
+
+Command executed:
+
+`bandit -r . -x ./.venv,./tests`
+
+Latest result:
+
+| Metric | Result |
+|---|---:|
+| Lines of code scanned | 1,202 |
+| High severity findings | 0 |
+| Medium severity findings | 0 |
+| Low severity findings | 0 |
+| Total findings | 0 |
+
+**Result:** No issues identified.
+
+The virtual environment and test directory were excluded from this scan.
+
+### 5.2 Dependency Vulnerability Audit
+
+Command executed:
+
+`pip-audit`
+
+Latest result:
+
+**No known vulnerabilities found.**
+
+This result reflects the installed dependencies checked at the time of the audit.
+
+## 6. Security Limitations and Future Improvements
+
+The project is still under development. The following improvements remain:
+
+| Area | Planned improvement | Priority |
+|---|---|---|
+| HTTPS/TLS | Configure HTTPS for web communications | High |
+| Session security | Enable Secure cookies after HTTPS deployment | High |
+| Web deployment | Use a production WSGI server | High |
+| Web password reset | Add password reset to the web interface | Medium |
+| Web file encryption | Add file encryption and decryption to the web interface | Medium |
+| Session lifecycle | Improve session expiration and lifecycle management | Medium |
+| Logging | Improve security event logging and monitoring | Medium |
+| MFA usability | Improve the MFA setup and confirmation interface | Medium |
+| Security testing | Expand automated web security tests | Medium |
+
+### 6.1 Current Deployment Limitations
+
+- The Flask development server is intended for local development, not production deployment.
+- HTTPS/TLS is not yet configured.
+- The session cookie Secure flag is disabled for local HTTP testing.
+- Web-based password reset and file encryption are not yet implemented.
+- Additional production security testing is required.
+
+## 7. Overall Assessment
+
+The project currently implements several important security controls, including password hashing, multi-factor authentication, encrypted secret storage, login rate limiting, secure password reset, and authenticated file encryption.
+
+The Flask interface provides browser-based registration, authentication, dashboard access, logout, and MFA enrollment.
+
+The latest verification results are:
+
+| Security check | Result |
+|---|---|
+| Automated tests | 105 passed |
+| Flask web tests | 17 passed |
+| Bandit | 0 issues identified |
+| Bandit lines scanned | 1,202 |
+| pip-audit | No known vulnerabilities |
+| Manual MFA verification | Passed |
+
+These results demonstrate that the tested functionality is working as expected. They do not constitute a complete security audit or establish production readiness.
+
+## 8. Conclusion
+
+The Secure Access & Encryption Framework has progressed from a command-line security application to an application with both CLI and Flask web interfaces.
+
+Core authentication, encryption, MFA, and password-reset functionality has been implemented and tested.
+
+Future development will focus on HTTPS/TLS, production deployment, additional web features, improved session management, and further security testing.

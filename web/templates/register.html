@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Account | Secure Access Framework</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Secure Access & Encryption Framework</h1>
+        <p>Create your secure account</p>
+    </header>
+
+    <main>
+        <h2>Register</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token"
+                   value="{{ csrf_token() }}">
+
+            <p>
+                <label for="username">Username</label><br>
+                <input type="text" id="username" name="username"
+                       required autocomplete="username">
+            </p>
+
+            <p>
+                <label for="email">Email address (optional)</label><br>
+                <input type="email" id="email" name="email"
+                       autocomplete="email">
+            </p>
+
+            <p>
+                <label for="password">Password</label><br>
+                <input type="password" id="password" name="password"
+                       required minlength="12"
+                       autocomplete="new-password">
+            </p>
+
+            <p>
+                <label for="confirm_password">Confirm password</label><br>
+                <input type="password" id="confirm_password"
+                       name="confirm_password" required
+                       autocomplete="new-password">
+            </p>
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <p>
+            Already registered?
+            <a href="{{ url_for('home') }}">Return to home</a>
+        </p>
+    </main>
+
+    <footer>
+        <p>Secure Access Framework | Learning Project</p>
+    </footer>
+</body>
+</html>
