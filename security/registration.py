@@ -1,6 +1,6 @@
 import re
 
-from app import is_valid_username
+from security.validation import is_valid_username
 from security.database import add_user
 from security.passwords import hash_password
 

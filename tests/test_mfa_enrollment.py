@@ -11,7 +11,6 @@ import pyotp
 from cryptography.fernet import Fernet
 
 from security.database import create_database, add_user
-from security.mfa import generate_mfa_secret
 from security.passwords import hash_password
 from security.secret_storage import decrypt_secret
 from security.mfa_enrollment import (
@@ -21,10 +20,14 @@ from security.mfa_enrollment import (
 
 
 class TestMFAEnrollment(unittest.TestCase):
+    TEST_PASSWORD = "example-password-123"
+
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp_dir.cleanup)
+
         self.database_path = Path(self.temp_dir.name) / "test_users.db"
+
         self.database_patch = patch(
             "security.database.DATABASE_PATH",
             self.database_path,
@@ -48,10 +51,13 @@ class TestMFAEnrollment(unittest.TestCase):
         self.addCleanup(self.key_patch.stop)
 
         create_database()
-        add_user("testuser", hash_password("example-password-123"))
+        add_user("testuser", hash_password(self.TEST_PASSWORD))
 
     def test_enrollment_stores_encrypted_secret(self):
-        success, message, uri = begin_mfa_enrollment("testuser")
+        success, message, uri = begin_mfa_enrollment(
+            "testuser",
+            self.TEST_PASSWORD,
+        )
 
         self.assertTrue(success, message)
         self.assertTrue(uri.startswith("otpauth://totp/"))
@@ -71,7 +77,10 @@ class TestMFAEnrollment(unittest.TestCase):
         self.assertTrue(decrypted)
 
     def test_valid_code_enables_mfa(self):
-        success, message, uri = begin_mfa_enrollment("testuser")
+        success, message, uri = begin_mfa_enrollment(
+            "testuser",
+            self.TEST_PASSWORD,
+        )
         self.assertTrue(success, message)
 
         with closing(sqlite3.connect(self.database_path)) as connection:
@@ -81,11 +90,14 @@ class TestMFAEnrollment(unittest.TestCase):
                 ("testuser",),
             ).fetchone()[0]
 
-        from security.secret_storage import decrypt_secret
         secret = decrypt_secret(encrypted_secret)
         code = pyotp.TOTP(secret).now()
 
-        success, message = confirm_mfa_enrollment("testuser", code)
+        success, message = confirm_mfa_enrollment(
+            "testuser",
+            self.TEST_PASSWORD,
+            code,
+        )
         self.assertTrue(success, message)
 
         with closing(sqlite3.connect(self.database_path)) as connection:
@@ -97,10 +109,17 @@ class TestMFAEnrollment(unittest.TestCase):
         self.assertEqual(enabled, 1)
 
     def test_invalid_code_does_not_enable_mfa(self):
-        success, message, uri = begin_mfa_enrollment("testuser")
+        success, message, uri = begin_mfa_enrollment(
+            "testuser",
+            self.TEST_PASSWORD,
+        )
         self.assertTrue(success, message)
 
-        success, message = confirm_mfa_enrollment("testuser", "abc")
+        success, message = confirm_mfa_enrollment(
+            "testuser",
+            self.TEST_PASSWORD,
+            "abc",
+        )
         self.assertFalse(success)
 
         with closing(sqlite3.connect(self.database_path)) as connection:
@@ -112,12 +131,28 @@ class TestMFAEnrollment(unittest.TestCase):
         self.assertEqual(enabled, 0)
 
     def test_unknown_user_cannot_enroll(self):
-        success, message, uri = begin_mfa_enrollment("unknown")
+        success, message, uri = begin_mfa_enrollment(
+            "unknown",
+            self.TEST_PASSWORD,
+        )
+
+        self.assertFalse(success)
+        self.assertIsNone(uri)
+
+    def test_incorrect_password_cannot_enroll(self):
+        success, message, uri = begin_mfa_enrollment(
+            "testuser",
+            "wrong-password",
+        )
+
         self.assertFalse(success)
         self.assertIsNone(uri)
 
     def test_enabled_mfa_cannot_be_enrolled_again(self):
-        success, message, uri = begin_mfa_enrollment("testuser")
+        success, message, uri = begin_mfa_enrollment(
+            "testuser",
+            self.TEST_PASSWORD,
+        )
         self.assertTrue(success, message)
 
         with closing(sqlite3.connect(self.database_path)) as connection:
@@ -129,10 +164,19 @@ class TestMFAEnrollment(unittest.TestCase):
 
         secret = decrypt_secret(encrypted_secret)
         code = pyotp.TOTP(secret).now()
-        success, message = confirm_mfa_enrollment("testuser", code)
+
+        success, message = confirm_mfa_enrollment(
+            "testuser",
+            self.TEST_PASSWORD,
+            code,
+        )
         self.assertTrue(success, message)
 
-        success, message, uri = begin_mfa_enrollment("testuser")
+        success, message, uri = begin_mfa_enrollment(
+            "testuser",
+            self.TEST_PASSWORD,
+        )
+
         self.assertFalse(success)
 
 

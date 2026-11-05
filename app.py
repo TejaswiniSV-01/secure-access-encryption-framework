@@ -1,72 +1,163 @@
-def show_mfa_status(enabled):
-    if enabled:
-        print("MFA status: enabled")
-    else:
-        print("MFA status: not enabled yet")
+
+from getpass import getpass
+
+from security.registration import register_user
+from security.authentication import login_user
+from security.validation import is_valid_username
+from security.mfa_enrollment import (
+    begin_mfa_enrollment,
+    confirm_mfa_enrollment,
+)
+
+current_user = None
 
 
 def has_reached_demo_threshold(attempts, threshold=5):
     return attempts >= threshold
 
 
-def is_valid_username(username):
-    if not isinstance(username, str):
-        return False
+def show_menu():
+    print("\n================================")
+    print(" Secure Access & Encryption ")
+    print("================================")
+    print("1. Register")
+    print("2. Login")
 
-    if not 3 <= len(username) <= 32:
-        return False
+    if current_user:
+        print("3. Set up MFA")
+        print("4. Confirm MFA")
+        print("5. Logout")
+        print("6. Exit")
+    else:
+        print("3. Exit")
 
-    letters_and_digits = (
-        "abcdefghijklmnopqrstuvwxyz"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "0123456789"
+
+def handle_registration():
+    print("\n--- User Registration ---")
+
+    username = input("Enter username: ")
+    password = getpass("Enter password: ")
+    email = input("Enter email (optional): ").strip()
+
+    if not email:
+        email = None
+
+    success, message = register_user(
+        username,
+        password,
+        email
     )
-    allowed_characters = letters_and_digits + "_.-"
 
-    if username[0] not in letters_and_digits:
-        return False
+    print(message)
 
-    return all(
-        character in allowed_characters
-        for character in username
+
+def handle_login():
+    global current_user
+
+    print("\n--- User Login ---")
+
+    username = input("Enter username: ")
+    password = getpass("Enter password: ")
+
+    mfa_code = input(
+        "Enter MFA code (if enabled, otherwise press Enter): "
     )
+
+    if not mfa_code:
+        mfa_code = None
+
+    success, message = login_user(
+        username,
+        password,
+        mfa_code
+    )
+
+    print(message)
+
+    if success:
+        current_user = username
+        print(f"Welcome, {current_user}!")
+
+
+def handle_mfa_setup():
+    if not current_user:
+        print("Please log in first.")
+        return
+
+    print("\n--- MFA Setup ---")
+
+    password = getpass("Re-enter your account password: ")
+
+    success, message, setup_uri = begin_mfa_enrollment(
+        current_user,
+        password
+    )
+
+    print(message)
+
+    if success:
+        print("\nScan this setup URI with your authenticator app:")
+        print(setup_uri)
+        print("\nNext, choose 'Confirm MFA' and enter your code.")
+
+
+def handle_mfa_confirmation():
+    if not current_user:
+        print("Please log in first.")
+        return
+
+    print("\n--- MFA Confirmation ---")
+
+    password = getpass("Re-enter your account password: ")
+    code = input("Enter the 6-digit authenticator code: ").strip()
+
+    success, message = confirm_mfa_enrollment(
+        current_user,
+        password,
+        code
+    )
+
+    print(message)
 
 
 def main():
-    project_name = "Secure Access & Data Encryption Framework"
-    project_status = "Foundation setup"
+    global current_user
 
-    failed_login_attempts = 3
-    mfa_enabled = False
+    while True:
+        show_menu()
 
-    planned_features = [
-        "Secure login and password hashing",
-        "Multi-factor authentication",
-        "File encryption",
-        "Vulnerability assessment",
-    ]
+        choice = input("Select an option: ").strip()
 
-    print("Project:", project_name)
-    print("Status:", project_status)
-    print("Example failed login attempts:", failed_login_attempts)
-    print("MFA enabled:", mfa_enabled)
+        if choice == "1":
+            handle_registration()
 
-    show_mfa_status(mfa_enabled)
+        elif choice == "2":
+            handle_login()
 
-    if has_reached_demo_threshold(failed_login_attempts):
-        print("Example status: threshold reached")
-    else:
-        print("Example status: below the example threshold")
+        elif choice == "3" and current_user:
+            handle_mfa_setup()
 
-    username = input("Enter a demo username: ")
+        elif choice == "4" and current_user:
+            handle_mfa_confirmation()
 
-    if is_valid_username(username):
-        print("Username input accepted.")
-    else:
-        print("Invalid username. Follow the username rules.")
+        elif choice == "3" and not current_user:
+            print("Exiting Secure Access Framework.")
+            break
 
-    print("Planned features:", planned_features)
+        elif choice == "5" and current_user:
+            print(f"Goodbye, {current_user}!")
+            current_user = None
+
+        elif choice == "6" and current_user:
+            print("Exiting Secure Access Framework.")
+            break
+
+        else:
+            print("Invalid option. Please try again.")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nApplication closed safely.")

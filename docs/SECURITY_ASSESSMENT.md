@@ -1,151 +1,242 @@
-# Security Vulnerability Assessment Report
+# Secure Access & Encryption Framework
+## Security Assessment Report
 
-**Project:** Secure Access Encryption Framework  
-**Assessment Date:** 30 October 2026  
-**Assessment Type:** Static Code Analysis, Dependency Audit, and Automated Security Testing
+![Security Tests](https://img.shields.io/badge/Security_Tests-PASS-brightgreen)
+![Unit Tests](https://img.shields.io/badge/Unit_Tests-88%20Passed-brightgreen)
+![Bandit](https://img.shields.io/badge/Bandit-0%20Findings-brightgreen)
+![Dependency Audit](https://img.shields.io/badge/pip--audit-No_Known_Vulnerabilities-brightgreen)
 
-## 1. Objective
+---
 
-The objective of this assessment was to identify potential security weaknesses in the Secure Access Encryption Framework using automated security scanning tools, dependency auditing, and functional security testing.
+## 1. Assessment Overview
 
-## 2. Tools Used
-
-| Tool | Purpose |
+| Detail | Information |
 |---|---|
-| Bandit 1.9.4 | Python source-code security analysis |
-| pip-audit 2.10.1 | Python dependency vulnerability scanning |
-| Python unittest | Automated functional and security testing |
+| Project | Secure Access & Encryption Framework |
+| Assessment Date | 5 November 2026 |
+| Platform | Kali Linux |
+| Programming Language | Python |
+| Database | SQLite |
+| Assessment Type | Application Security Assessment |
+| Testing Approach | Automated and Manual Testing |
 
-## 3. Static Code Analysis
+### Objective
 
-Bandit was used to scan the application and test directories.
+The objective of this assessment is to evaluate the security features implemented in the Secure Access & Encryption Framework.
 
-### Application Code Results
+The assessment focuses on authentication, password protection, multi-factor authentication, password recovery, file encryption, database security, and dependency vulnerabilities.
 
-- Files scanned: Application and security modules.
-- Lines of code scanned: 721.
-- High-severity findings: 0.
-- Medium-severity findings: 0.
-- Low-severity findings: 0.
+---
 
-**Result:** No issues identified in the application code by Bandit.
+## 2. Security Features Implemented
 
-### Test Code Results
+| Security Feature | Implementation | Status |
+|---|---|---|
+| Username Validation | Input validation rules | PASS |
+| Password Hashing | Argon2 | PASS |
+| User Authentication | Password verification | PASS |
+| Multi-Factor Authentication | TOTP | PASS |
+| MFA Secret Protection | Fernet encryption | PASS |
+| Login Rate Limiting | 5 failed attempts, 5-minute lockout | PASS |
+| Password Reset | OTP-based password recovery | PASS |
+| OTP Protection | Argon2 hashing, expiry and attempt limits | PASS |
+| Email Delivery | Gmail SMTP over SSL | PASS |
+| File Encryption | AES-256-GCM | PASS |
+| Key Derivation | Scrypt | PASS |
+| Database Protection | SQLite permissions and migrations | PASS |
 
-The complete project scan identified five low-severity findings.
+---
 
-All five findings were classified as B105 (hardcoded password string).
+## 3. Security Testing Results
 
-The findings involved dummy credentials and test secrets used in automated test cases.
+### 3.1 Automated Unit Testing
 
-Affected files:
-- tests/test_authentication.py
-- tests/test_file_encryption.py
-- tests/test_password_reset.py
-- tests/test_secret_storage.py
+The Python unit test suite was executed using:
 
-These values are test fixtures and are not production credentials.
+```bash
+python -m unittest discover -v
+```
 
-They were retained because they are used for automated testing.
+**Result: 88 tests passed.**
 
-## 4. Dependency Vulnerability Assessment
+| Test Result | Count |
+|---|---:|
+| Tests Executed | 88 |
+| Tests Passed | 88 |
+| Tests Failed | 0 |
 
-The pip-audit tool initially identified 12 vulnerability records associated with pip version 25.0.
+The tests cover application functionality and security-related behaviour, including authentication, MFA, password handling, password recovery, database operations, and file encryption.
 
-### Remediation
+### 3.2 Static Application Security Testing
 
-The affected package was upgraded:
+The Bandit security scanner was executed using:
 
-- Previous version: pip 25.0
-- Updated version: pip 26.2.2
+```bash
+bandit -r . -x ./.venv,./tests
+```
 
-A second dependency audit was performed.
+**Result: No issues identified.**
 
-**Final result:** No known vulnerabilities found.
+| Scan Detail | Result |
+|---|---:|
+| Lines of Code Scanned | 982 |
+| High Severity Findings | 0 |
+| Medium Severity Findings | 0 |
+| Low Severity Findings | 0 |
+| Undefined Severity Findings | 0 |
 
-## 5. Functional and Security Testing
+**Scope note:** The virtual environment and test directory were excluded from this scan. The result applies to the scanned application code, not every file in the repository.
 
-The complete automated test suite was executed after the latest code changes.
+### 3.3 Dependency Vulnerability Assessment
 
-| Test category | Result |
+The dependency audit was performed using:
+
+```bash
+pip-audit
+```
+
+**Result: No known vulnerabilities found.**
+
+The audit did not identify known vulnerabilities in the installed Python dependencies.
+
+---
+
+## 4. Manual Security Verification
+
+The following security behaviours were manually checked during development.
+
+| Security Check | Expected Behaviour | Result |
+|---|---|---|
+| User Registration | Valid registration succeeds | PASS |
+| User Login | Correct credentials allow login | PASS |
+| MFA Enrollment | Password verification is required | PASS |
+| MFA Confirmation | Valid TOTP code enables MFA | PASS |
+| MFA Login | Valid authenticator code is accepted | PASS |
+| Invalid MFA Code | Invalid code does not enable MFA | PASS |
+| Login Rate Limiting | Repeated failed attempts trigger lockout | PASS |
+| Password Reset OTP | OTP is verified before password reset | PASS |
+| OTP Expiration | Expired OTP is rejected | PASS |
+| OTP Reuse | Previously used OTP is rejected | PASS |
+| OTP Storage | OTP is stored as a hash | PASS |
+| File Integrity | Modified encrypted files are rejected | PASS |
+| Incorrect File Password | Incorrect password cannot decrypt the file | PASS |
+| Database Permissions | Database file has restricted permissions | PASS |
+
+---
+
+## 5. Security Controls and Design
+
+### Password Security
+
+- Passwords are hashed using Argon2.
+- Password verification is performed during authentication.
+- Plain-text passwords are not stored in the user database.
+
+### Multi-Factor Authentication
+
+- TOTP is used as the second authentication factor.
+- MFA secrets are encrypted using Fernet before database storage.
+- Password verification is required to begin and confirm MFA enrollment.
+
+### Authentication Protection
+
+- Login attempts are rate-limited.
+- Five failed attempts trigger a five-minute lockout.
+- Authentication responses are designed to avoid unnecessarily revealing account information.
+
+### Password Recovery
+
+- Password-reset OTPs are generated using a cryptographically secure random generator.
+- OTPs are stored as Argon2 hashes.
+- OTPs expire after five minutes.
+- A maximum of five verification attempts is allowed.
+- Successfully used OTPs cannot be reused.
+
+### File Encryption
+
+- AES-256-GCM provides authenticated file encryption.
+- Scrypt is used for password-based key derivation.
+- Authentication protects encrypted file contents against undetected modification.
+
+### Database Security
+
+- SQLite is used for data storage.
+- Database migrations support schema updates.
+- Database connections are cleaned up.
+- Database file permissions are restricted.
+
+---
+
+## 6. Security Configuration
+
+Sensitive configuration values are stored outside the project repository.
+
+Examples include:
+
+- MFA encryption key.
+- Email account credentials.
+- Email application password.
+
+File permissions are restricted to reduce unauthorized access.
+
+**Important:** Secret keys and credentials must never be committed to GitHub or included in source code.
+
+---
+
+## 7. Limitations and Areas for Improvement
+
+| Area | Recommendation | Priority |
+|---|---|---|
+| Session Management | Implement secure session handling | High |
+| HTTPS/TLS | Add HTTPS when developing the web application | High |
+| File Encryption | Support large files without loading the entire file into memory | Medium |
+| Key Management | Introduce secure key rotation and backup procedures | High |
+| Logging | Add security event logging without exposing secrets | Medium |
+| Deployment | Perform additional security testing in a production-like environment | High |
+| Recovery | Define a secure MFA recovery process | Medium |
+
+The current command-line application uses an in-process login state. This should not be treated as production-grade session management.
+
+---
+
+## 8. Overall Assessment
+
+**TESTS PASSED**
+
+The Secure Access & Encryption Framework implements several important security controls, including:
+
+- Argon2 password hashing.
+- TOTP multi-factor authentication.
+- Fernet encryption for stored MFA secrets.
+- Login rate limiting.
+- Secure OTP-based password recovery.
+- AES-256-GCM file encryption.
+- Scrypt-based key derivation.
+- Restricted database and configuration file permissions.
+
+### Latest Validation Results
+
+| Assessment | Result |
 |---|---|
-| Application helpers | Passed |
-| Authentication | Passed |
-| SQL injection protection | Passed |
-| AES-256 file encryption | Passed |
-| MFA | Passed |
-| MFA enrollment | Passed |
-| Password reset | Passed |
-| Password security | Passed |
-| Rate limiting | Passed |
-| Secret storage | Passed |
+| Python Unit Tests | 88 Passed |
+| Bandit Application Code Scan | 0 Findings |
+| pip-audit | No Known Vulnerabilities |
+| Manual Security Checks | Passed |
 
-**Total tests:** 72  
-**Passed:** 72  
-**Failed:** 0
+Passing automated and manual tests does not guarantee that an application is completely secure. Further testing, code review, and security improvements are necessary before production deployment.
 
-### Additional Security Checks
-
-The following security scenarios were specifically tested:
-
-1. SQL injection attempts using a malicious username were rejected.
-2. Login without a required MFA code was rejected.
-3. Invalid MFA codes were rejected.
-4. Expired password-reset OTPs were rejected.
-5. OTP reuse was prevented.
-6. Five incorrect OTP attempts invalidated the OTP.
-7. OTP hashing and verification were tested.
-8. Modified encrypted files were rejected.
-9. Incorrect file-decryption passwords were rejected.
-
-**Result:** All focused security tests passed.
-
-## 6. Security Features Evaluated
-
-The project includes the following security mechanisms:
-
-1. Argon2 password hashing.
-2. Time-based one-time password MFA.
-3. Encrypted MFA secret storage.
-4. Login rate limiting.
-5. Email-based password recovery using OTP.
-6. OTP expiration and attempt restrictions.
-7. AES-256-GCM file encryption.
-8. Scrypt-based encryption key derivation.
-9. Authentication and input validation.
-10. Parameterized database queries to protect against SQL injection.
-
-## 7. Recommendations
-
-The following improvements are recommended:
-
-- Continue monitoring dependencies for known vulnerabilities.
-- Keep cryptographic keys and email credentials outside the source repository.
-- Perform regular security scans.
-- Maintain automated regression tests.
-- Review authentication and password-reset workflows periodically.
-- Test file encryption with large files and additional edge cases.
-- Consider independent penetration testing before production deployment.
-
-## 8. Assessment Limitations
-
-This assessment used automated static analysis, dependency auditing, and functional security tests.
-
-These tools do not identify every possible vulnerability.
-
-No independent penetration test or comprehensive manual security audit was performed as part of this assessment.
-
-Therefore, the results should not be interpreted as proof that the application is completely secure.
+---
 
 ## 9. Conclusion
 
-The assessment identified no Bandit findings in the application code and no known dependency vulnerabilities after upgrading pip.
+This project demonstrates the implementation of fundamental application security concepts using Python.
 
-All 72 automated tests passed.
+It provides practical experience with authentication, password hashing, multi-factor authentication, encryption, database security, vulnerability scanning, and software testing.
 
-Focused security tests also confirmed the expected behavior for SQL injection rejection, MFA enforcement, password-reset OTP protection, and encrypted-file integrity.
+The project will continue to evolve with additional security improvements, web application development, HTTPS/TLS configuration, and further testing.
 
-Five low-severity Bandit findings remain in test files because they involve dummy test credentials.
+---
 
-The project demonstrates several important security mechanisms and has successfully completed an initial automated vulnerability assessment and functional security testing.
+*Report prepared for the Secure Access & Encryption Framework project.*
 
+*Assessment Date: 5 November 2026*

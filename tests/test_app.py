@@ -1,7 +1,12 @@
 import unittest
 
-from app import has_reached_demo_threshold, is_valid_username
+from app import has_reached_demo_threshold
+from security.validation import is_valid_username
+from contextlib import redirect_stdout
+from io import StringIO
+from unittest.mock import patch
 
+import app
 
 class TestProjectHelpers(unittest.TestCase):
 
@@ -46,6 +51,50 @@ class TestProjectHelpers(unittest.TestCase):
     def test_non_string_username(self):
         self.assertFalse(is_valid_username(123))
 
+class TestApplicationSession(unittest.TestCase):
+
+    def setUp(self):
+        app.current_user = None
+
+    def tearDown(self):
+        app.current_user = None
+
+    def test_successful_login_creates_session(self):
+        with patch("builtins.input", side_effect=[
+            "Vasudeva", ""
+        ]), patch(
+            "app.getpass", return_value="example-password"
+        ), patch(
+            "app.login_user",
+            return_value=(True, "Login successful.")
+        ):
+            app.handle_login()
+
+        self.assertEqual(app.current_user, "Vasudeva")
+
+    def test_failed_login_does_not_create_session(self):
+        with patch("builtins.input", side_effect=[
+            "Vasudeva", ""
+        ]), patch(
+            "app.getpass", return_value="wrong-password"
+        ), patch(
+            "app.login_user",
+            return_value=(False, "Invalid username or password.")
+        ):
+            app.handle_login()
+
+        self.assertIsNone(app.current_user)
+
+    def test_logout_clears_session(self):
+        app.current_user = "Vasudeva"
+
+        with patch(
+            "builtins.input",
+            side_effect=["5", "3"]
+        ), redirect_stdout(StringIO()):
+            app.main()
+
+        self.assertIsNone(app.current_user)
 
 if __name__ == "__main__":
     unittest.main()
