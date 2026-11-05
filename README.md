@@ -4,13 +4,6 @@
   <strong>A hands-on cybersecurity project focused on secure authentication, multi-factor authentication, data encryption, and vulnerability assessment.</strong>
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.x-blue?logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Platform-Kali%20Linux-blue?logo=linux&logoColor=white" alt="Kali Linux">
-  <img src="https://img.shields.io/badge/Focus-Cybersecurity-red" alt="Cybersecurity">
-  <img src="https://img.shields.io/badge/Project-In%20Progress-orange" alt="Project status">
-</p>
-
 ---
 
 ## 📌 Project Overview
