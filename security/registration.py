@@ -1,4 +1,6 @@
+
 import re
+import sqlite3
 
 from security.validation import is_valid_username
 from security.database import add_user
@@ -25,7 +27,11 @@ def register_user(username, password, email=None):
 
     password_hash = hash_password(password)
 
-    if not add_user(username, password_hash, email):
-        return False, "Username or email already exists."
+    try:
+        if not add_user(username, password_hash, email):
+            return False, "Username or email already exists."
+
+    except sqlite3.Error:
+        return False, "Registration could not be completed. Please try again later."
 
     return True, "Registration successful."
