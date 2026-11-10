@@ -5,8 +5,7 @@ from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
-from security.database import create_database
-
+from security.database import create_database, get_connection
 
 class TestDatabase(unittest.TestCase):
 
@@ -96,6 +95,15 @@ class TestDatabase(unittest.TestCase):
 
         self.assertIn("updated_at", columns)
 
+    def test_get_connection_enables_foreign_keys(self):
+        connection = get_connection()
+        self.addCleanup(connection.close)
+
+        result = connection.execute(
+            "PRAGMA foreign_keys"
+        ).fetchone()[0]
+
+        self.assertEqual(result, 1)
 
 if __name__ == "__main__":
     unittest.main()

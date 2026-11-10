@@ -4,7 +4,7 @@ import sqlite3
 import time
 from contextlib import closing
 
-from security.database import DATABASE_PATH, create_database
+from security.database import DATABASE_PATH, create_database, get_connection
 from security.email_service import send_password_reset_email
 from security.passwords import hash_password, verify_password
 
@@ -54,7 +54,7 @@ def save_reset_otp(username, otp):
 
     create_database()
 
-    with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+    with closing(get_connection()) as connection:
         with connection:
             user = connection.execute(
                 "SELECT username FROM users WHERE username = ?",
@@ -80,7 +80,7 @@ def verify_reset_otp(username, otp):
 
     create_database()
 
-    with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+    with closing(get_connection()) as connection:
         with connection:
             record = connection.execute("""
                 SELECT otp_hash, expires_at, attempts
@@ -137,7 +137,7 @@ def request_password_reset(username):
 
     create_database()
 
-    with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+    with closing(get_connection()) as connection:
         user = connection.execute(
             "SELECT email FROM users WHERE username = ?",
             (username,),
@@ -154,7 +154,7 @@ def request_password_reset(username):
     try:
         send_password_reset_email(user[0], otp)
     except Exception:
-        with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+        with closing(get_connection()) as connection:
             with connection:
                 connection.execute(
                     "DELETE FROM password_reset_tokens WHERE username = ?",
@@ -176,7 +176,7 @@ def reset_password(username, otp, new_password):
 
     create_database()
 
-    with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+    with closing(get_connection()) as connection:
         connection.execute("BEGIN IMMEDIATE")
 
         try:

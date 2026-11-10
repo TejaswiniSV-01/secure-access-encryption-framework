@@ -1,4 +1,3 @@
-
 import sqlite3
 import time
 from contextlib import closing
@@ -43,9 +42,7 @@ def is_locked(username, now=None):
     _prepare_database()
 
     try:
-        with closing(
-            sqlite3.connect(database.DATABASE_PATH)
-        ) as connection:
+        with closing(database.get_connection()) as connection:
             result = connection.execute(
                 """
                 SELECT locked_until
@@ -73,10 +70,7 @@ def record_failed_attempt(username, now=None):
     _prepare_database()
 
     try:
-        with closing(
-            sqlite3.connect(database.DATABASE_PATH)
-        ) as connection:
-
+        with closing(database.get_connection()) as connection:
             connection.execute("BEGIN IMMEDIATE")
 
             try:
@@ -156,9 +150,7 @@ def reset_failed_attempts(username):
     _prepare_database()
 
     try:
-        with closing(
-            sqlite3.connect(database.DATABASE_PATH)
-        ) as connection:
+        with closing(database.get_connection()) as connection:
             with connection:
                 connection.execute(
                     """
@@ -199,9 +191,7 @@ def cleanup_old_attempts(
     _prepare_database()
 
     try:
-        with closing(
-            sqlite3.connect(database.DATABASE_PATH)
-        ) as connection:
+        with closing(database.get_connection()) as connection:
             with connection:
                 cursor = connection.execute(
                     """
@@ -220,4 +210,3 @@ def cleanup_old_attempts(
         raise RateLimiterError(
             "Could not clean up old login-attempt records."
         ) from error
-

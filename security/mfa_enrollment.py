@@ -2,7 +2,7 @@
 import sqlite3
 from contextlib import closing
 
-from security.database import DATABASE_PATH, create_database
+from security.database import DATABASE_PATH, create_database, get_connection
 from security.mfa import (
     generate_mfa_secret,
     get_totp_setup_uri,
@@ -26,7 +26,7 @@ def begin_mfa_enrollment(username, password):
     create_database()
 
     try:
-        with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+        with closing(get_connection()) as connection:
             with connection:
                 row = connection.execute(
                     """
@@ -60,7 +60,7 @@ def begin_mfa_enrollment(username, password):
         return False, "MFA secret encryption is unavailable.", None
 
     try:
-        with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+        with closing(get_connection()) as connection:
             with connection:
                 connection.execute(
                     """
@@ -102,7 +102,7 @@ def confirm_mfa_enrollment(username, password, code):
     create_database()
 
     try:
-        with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+        with closing(get_connection()) as connection:
             with connection:
                 row = connection.execute(
                     """
@@ -136,7 +136,7 @@ def confirm_mfa_enrollment(username, password, code):
         return False, "Invalid MFA code."
 
     try:
-        with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+        with closing(get_connection()) as connection:
             with connection:
                 connection.execute(
                     """
@@ -158,4 +158,3 @@ def confirm_mfa_enrollment(username, password, code):
         return False, "MFA could not be enabled."
 
     return True, "MFA enabled successfully."
-

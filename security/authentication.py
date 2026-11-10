@@ -1,7 +1,8 @@
+
 import sqlite3
 from contextlib import closing
 
-from security.database import DATABASE_PATH, create_database
+from security.database import DATABASE_PATH, create_database, get_connection
 from security.passwords import verify_password
 from security.secret_storage import decrypt_secret
 from security.mfa import verify_totp_code
@@ -27,7 +28,7 @@ def login_user(username, password, mfa_code=None):
 
         create_database()
 
-        with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+        with closing(get_connection()) as connection:
             with connection:
                 row = connection.execute(
                     """

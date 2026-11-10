@@ -1,3 +1,4 @@
+
 import sqlite3
 import time
 from contextlib import closing
@@ -7,8 +8,15 @@ from pathlib import Path
 DATABASE_PATH = Path(__file__).resolve().parent.parent / "users.db"
 
 
+def get_connection():
+    """Create a SQLite connection with consistent security settings."""
+    connection = sqlite3.connect(DATABASE_PATH)
+    connection.execute("PRAGMA foreign_keys = ON")
+    return connection
+
+
 def create_database():
-    with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+    with closing(get_connection()) as connection:
         with connection:
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS users (
@@ -101,7 +109,7 @@ def add_user(username, password_hash, email=None):
     create_database()
 
     try:
-        with closing(sqlite3.connect(DATABASE_PATH)) as connection:
+        with closing(get_connection()) as connection:
             with connection:
                 connection.execute(
                     "INSERT INTO users "
