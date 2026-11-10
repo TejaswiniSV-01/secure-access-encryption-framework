@@ -1,8 +1,7 @@
-
 # Security Assessment
 ## Secure Access & Encryption Framework
 
-**Assessment date:** 5 November 2026
+**Assessment date:** 10 November 2026
 **Project status:** Development and security testing
 **Application:** Python CLI and Flask web interface
 
@@ -99,6 +98,7 @@ The session stores the authenticated username, not the user's password or MFA se
 - Database operations use parameterized SQL queries.
 - Database connections are closed using context managers and cleanup mechanisms.
 - Database schema migrations preserve existing data.
+- SQLite connections use a shared connection helper with foreign key enforcement enabled.
 
 ### 3.2 Secret Management
 
@@ -138,26 +138,27 @@ The session cookie Secure, HTTPOnly, and SameSite settings have been verified.
 
 ## 4. Automated Testing Results
 
-The complete automated test suite was executed using:
+The complete automated test suite was executed on 10 November 2026 using:
 
 `python -m unittest discover -v`
 
-**Result: 105 tests passed.**
+**Result: 109 tests passed.**
 
 | Test category | Tests |
 |---|---:|
-| CLI application and validation | 13 |
+| CLI application and validation | 16 |
 | Authentication | 12 |
-| Database | 4 |
+| Database | 5 |
 | File encryption | 6 |
 | MFA | 6 |
 | MFA enrollment | 6 |
-| Password reset | 14 |
+| Password reset | 15 |
 | Password security | 6 |
 | Rate limiter | 13 |
+| Registration | 3 |
 | Secret storage | 4 |
 | Flask web application | 17 |
-| **Total** | **105** |
+| **Total** | **109** |
 
 All tests passed with zero failures and zero errors.
 
@@ -208,6 +209,9 @@ The following web application behaviours were manually verified:
 
 ### 5.1 Bandit
 
+**Bandit version:** 1.9.4
+**Assessment date:** 10 November 2026
+
 Command executed:
 
 `bandit -r . -x ./.venv,./tests`
@@ -216,11 +220,13 @@ Latest result:
 
 | Metric | Result |
 |---|---:|
-| Lines of code scanned | 1,206 |
+| Python version | 3.13.2 |
+| Lines of code scanned | 1,207 |
 | High severity findings | 0 |
 | Medium severity findings | 0 |
 | Low severity findings | 0 |
 | Total findings | 0 |
+| Files skipped | 0 |
 
 **Result:** No issues identified.
 
@@ -273,10 +279,10 @@ The latest verification results are:
 
 | Security check | Result |
 |---|---|
-| Automated tests | 105 passed |
+| Automated tests | 109 passed |
 | Flask web tests | 17 passed |
 | Bandit | 0 issues identified |
-| Bandit lines scanned | 1,206 |
+| Bandit lines scanned | 1,207 |
 | pip-audit | No known vulnerabilities |
 | Manual MFA verification | Passed |
 | Local HTTPS verification | Passed |
@@ -290,6 +296,6 @@ The Secure Access & Encryption Framework has progressed from a command-line secu
 
 Core authentication, encryption, MFA, and password-reset functionality has been implemented and tested.
 
-Local HTTPS/TLS and Secure session cookies have now been configured and verified.
+Local HTTPS/TLS and secure session cookies have been configured and verified.
 
 Future development will focus on production deployment, additional web features, improved session management, and further security testing.

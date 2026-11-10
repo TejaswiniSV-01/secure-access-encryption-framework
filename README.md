@@ -75,6 +75,7 @@ secure-access-encryption-framework/
 │   ├── test_password_reset.py
 │   ├── test_passwords.py
 │   ├── test_rate_limiter.py
+│   ├── test_registration.py
 │   ├── test_secret_storage.py
 │   └── test_web.py
 │
@@ -93,7 +94,7 @@ The project has undergone initial automated security testing.
 
 | Security Check | Result |
 |---|---|
-| Unit tests | ✅ 105 tests passed |
+| Unit tests | ✅ 109 tests passed |
 | Bandit static analysis | ✅ Zero issues identified |
 | pip-audit | ✅ No known vulnerabilities found |
 | HTTPS login test | ✅ Successful in local environment |
