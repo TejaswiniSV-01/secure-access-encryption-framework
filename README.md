@@ -14,6 +14,27 @@ The project demonstrates how authentication, multi-factor authentication (MFA), 
 
 🎯 **Main Objective:** Build a practical security framework while developing skills in Python programming, Linux, cryptography, and cybersecurity.
 
+## 🚀 Getting Started
+
+New to this project? Follow the [Installation and User Guide](INSTALLATION.md) to download, configure, and run the application.
+
+The guide covers:
+- Python environment setup and dependencies.
+- Secret key configuration.
+- Local HTTPS certificate generation.
+- Running the CLI and web application.
+- MFA, file encryption, and password recovery.
+- Automated tests and security checks.
+
+**Quick start:**
+
+```bash
+git clone https://github.com/TejaswiniSV-01/secure-access-encryption-framework.git
+cd secure-access-encryption-framework
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 ## ✨ Key Features
 
 | Feature | Description | Status |
