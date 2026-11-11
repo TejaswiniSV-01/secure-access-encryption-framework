@@ -1,3 +1,4 @@
+
 import os
 
 from flask import (
@@ -13,6 +14,10 @@ from flask_wtf.csrf import CSRFProtect
 
 from security.authentication import login_user
 from security.registration import register_user
+from security.password_reset import (
+    request_password_reset,
+    reset_password,
+)
 from security.mfa_enrollment import (
     begin_mfa_enrollment,
     confirm_mfa_enrollment,
@@ -99,6 +104,70 @@ def login():
         return redirect(url_for("login"))
 
     return render_template("login.html")
+
+
+@app.route("/password-reset", methods=["GET", "POST"])
+def password_reset_request():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+
+        try:
+            success, message = request_password_reset(username)
+            flash(message, "success" if success else "error")
+        except Exception:
+            flash(
+                "Unable to process the request right now. Please try again later.",
+                "error",
+            )
+
+        return redirect(
+            url_for("password_reset_confirm", username=username)
+        )
+
+    return render_template("password_reset.html")
+
+
+@app.route("/password-reset/confirm", methods=["GET", "POST"])
+def password_reset_confirm():
+    username = request.values.get("username", "").strip()
+
+    if request.method == "POST":
+        otp = request.form.get("otp", "").strip()
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if new_password != confirm_password:
+            flash("Passwords do not match.", "error")
+            return redirect(
+                url_for("password_reset_confirm", username=username)
+            )
+
+        try:
+            success, message = reset_password(
+                username,
+                otp,
+                new_password,
+            )
+        except Exception:
+            flash(
+                "Password reset could not be completed. Please try again later.",
+                "error",
+            )
+            return redirect(url_for("login"))
+
+        if success:
+            flash(message, "success")
+            return redirect(url_for("login"))
+
+        flash(message, "error")
+        return redirect(
+            url_for("password_reset_confirm", username=username)
+        )
+
+    return render_template(
+        "password_reset_confirm.html",
+        username=username,
+    )
 
 
 @app.route("/dashboard")

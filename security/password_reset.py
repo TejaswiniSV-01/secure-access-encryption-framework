@@ -7,6 +7,7 @@ from contextlib import closing
 from security.database import DATABASE_PATH, create_database, get_connection
 from security.email_service import send_password_reset_email
 from security.passwords import hash_password, verify_password
+from security.registration import is_strong_password
 
 
 OTP_EXPIRY_SECONDS = 300
@@ -171,8 +172,12 @@ def reset_password(username, otp, new_password):
     if not isinstance(username, str) or not username:
         return False, "Invalid or expired verification code."
 
-    if not isinstance(new_password, str) or len(new_password) < 12:
-        return False, "Password must contain at least 12 characters."
+    if not is_strong_password(new_password):
+        return False, (
+            "Password must contain at least 12 characters, "
+            "including uppercase and lowercase letters, "
+            "a number, and a special character."
+        )
 
     create_database()
 
