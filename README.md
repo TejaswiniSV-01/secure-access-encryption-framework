@@ -1,7 +1,8 @@
+
 # 🔐 Secure Access & Data Encryption Framework
 
 <p align="center">
-  <strong>A hands-on cybersecurity project focused on secure authentication, multi-factor authentication, data encryption, and vulnerability assessment.</strong>
+  <strong>A hands-on cybersecurity project focused on secure authentication, multi-factor authentication, password recovery, data encryption, and vulnerability assessment.</strong>
 </p>
 
 ---
@@ -10,7 +11,7 @@
 
 The **Secure Access & Data Encryption Framework** is a hands-on cybersecurity project developed to explore and implement essential security mechanisms using Python.
 
-The project demonstrates how authentication, multi-factor authentication (MFA), file encryption, secure communication, and security testing can work together in a controlled laboratory environment.
+The project demonstrates how authentication, multi-factor authentication (MFA), password security, password recovery, file encryption, secure communication, and security testing can work together in a controlled laboratory environment.
 
 🎯 **Main Objective:** Build a practical security framework while developing skills in Python programming, Linux, cryptography, and cybersecurity.
 
@@ -35,17 +36,19 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
 ## ✨ Key Features
 
 | Feature | Description | Status |
 |---|---|---|
-| 🔑 Secure Authentication | User registration, login, and password hashing | ✅ Implemented |
+| 🔑 Secure Authentication | User registration, login, and password hashing using Argon2 | ✅ Implemented |
+| 🔐 Password Strength Validation | Enforces a minimum of 12 characters, uppercase, lowercase, numbers, and special characters | ✅ Implemented |
+| 📧 Password Reset | OTP-based password recovery through email | ✅ Implemented |
 | 📱 Multi-Factor Authentication | Additional verification using MFA | ✅ Implemented |
 | 🔒 File Encryption | Encryption and decryption of stored files | ✅ Implemented |
 | 🌐 HTTPS/TLS | Local HTTPS configuration using OpenSSL | ✅ Configured locally |
 | 🛡️ Security Assessment | Static analysis and dependency vulnerability checks | ✅ Initial assessment |
-| 🧪 Automated Testing | Automated unit and security-related tests | ✅ Implemented |
-| 📄 Security Documentation | Security assessment and project documentation | ✅ Initial documentation |
+| 🧪 Automated Testing | Automated unit and web application tests | ✅ Implemented |
 
 ## 🛠️ Technologies Used
 
@@ -54,6 +57,11 @@ pip install -r requirements.txt
 | Python 3 | Core programming language |
 | Kali Linux | Development and security testing environment |
 | Flask | Web application framework |
+| SQLite | Database management |
+| Argon2 | Secure password hashing |
+| PyOTP | One-time password generation and MFA |
+| Cryptography | File encryption and cryptographic operations |
+| Flask-WTF | CSRF protection |
 | OpenSSL | TLS certificate generation |
 | Git & GitHub | Version control and project hosting |
 | Bandit | Python security static analysis |
@@ -84,7 +92,14 @@ secure-access-encryption-framework/
 │   └── validation.py
 │
 ├── web/                           # Flask web application
-│   └── app.py
+│   ├── app.py
+│   └── templates/
+│       ├── login.html
+│       ├── register.html
+│       ├── password_reset.html
+│       ├── password_reset_confirm.html
+│       ├── dashboard.html
+│       └── index.html
 │
 ├── tests/                         # Automated test suite
 │   ├── test_app.py
@@ -111,15 +126,17 @@ secure-access-encryption-framework/
 
 ## 🧪 Security Testing Results
 
-The project has undergone initial automated security testing.
+The project has undergone automated testing and initial security assessment.
 
 | Security Check | Result |
 |---|---|
-| Unit tests | ✅ 109 tests passed |
-| Bandit static analysis | ✅ Zero issues identified |
-| pip-audit | ✅ No known vulnerabilities found |
+| Unit and web application tests | ✅ 116 tests passed |
+| Password strength validation tests | ✅ Passed |
+| Password reset tests | ✅ Passed |
 | HTTPS login test | ✅ Successful in local environment |
 | Secure session cookie configuration | ✅ Enabled |
+| Bandit static analysis | ✅ Zero issues identified |
+| pip-audit | ✅ No known vulnerabilities found |
 
 > **Note:** These results represent the current development assessment. They do not guarantee that the application is free from vulnerabilities.
 
@@ -130,9 +147,31 @@ Local HTTPS has been configured using OpenSSL with a self-signed certificate.
 - RSA 2048-bit certificate.
 - Subject Alternative Names for `localhost` and `127.0.0.1`.
 - Secure session cookies enabled.
+- HTTP-only session cookies.
+- SameSite cookie policy.
 - Private key permissions restricted to the owner.
 
 ⚠️ **Important:** The self-signed certificate is intended for local development only. Production deployment still requires a trusted certificate and a production-grade WSGI server.
+
+## 🔐 Password Security
+
+The application includes password security and recovery mechanisms.
+
+**Password requirements:**
+- Minimum 12 characters.
+- At least one uppercase letter.
+- At least one lowercase letter.
+- At least one number.
+- At least one special character.
+
+**Password recovery:**
+- Users can request a password reset using their username.
+- A one-time verification code (OTP) is sent to the registered email address.
+- The reset code has a limited validity period.
+- OTP verification includes an attempt limit.
+- Users must enter and confirm their new password.
+
+Passwords are hashed using Argon2 rather than stored as plain text.
 
 ## 🎓 Learning Objectives
 
@@ -141,6 +180,7 @@ Through this project, I aim to develop practical knowledge of:
 - Linux commands and system administration.
 - Python programming and application development.
 - Secure authentication and password hashing.
+- Password strength validation and recovery.
 - Multi-factor authentication.
 - Data encryption and cryptographic concepts.
 - HTTPS/TLS and secure communications.
@@ -153,6 +193,10 @@ Through this project, I aim to develop practical knowledge of:
 - [x] Initial project setup
 - [x] Secure authentication
 - [x] Password hashing
+- [x] Strong password validation
+- [x] OTP-based password reset
+- [x] Password reset web interface
+- [x] Password reset automated tests
 - [x] Multi-factor authentication
 - [x] File encryption
 - [x] Flask web application
